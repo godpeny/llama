@@ -20,7 +20,12 @@ wget ${PRESIGNED_URL/'*'/"USE_POLICY.md"} -O ${TARGET_FOLDER}"/USE_POLICY.md"
 echo "Downloading tokenizer"
 wget ${PRESIGNED_URL/'*'/"tokenizer.model"} -O ${TARGET_FOLDER}"/tokenizer.model"
 wget ${PRESIGNED_URL/'*'/"tokenizer_checklist.chk"} -O ${TARGET_FOLDER}"/tokenizer_checklist.chk"
-(cd ${TARGET_FOLDER} && md5sum -c tokenizer_checklist.chk)
+CPU_ARCH=$(uname -m)
+  if [ "$CPU_ARCH" = "arm64" ]; then
+    (cd ${TARGET_FOLDER} && md5 tokenizer_checklist.chk)
+  else
+    (cd ${TARGET_FOLDER} && md5sum -c tokenizer_checklist.chk)
+  fi
 
 for m in ${MODEL_SIZE//,/ }
 do
@@ -34,7 +39,7 @@ do
         SHARD=1
         MODEL_PATH="llama-2-13b"
     elif [[ $m == "13B-chat" ]]; then
-        SHARD=1
+        SHARD=1d
         MODEL_PATH="llama-2-13b-chat"
     elif [[ $m == "70B" ]]; then
         SHARD=7
@@ -54,7 +59,12 @@ do
 
     wget ${PRESIGNED_URL/'*'/"${MODEL_PATH}/params.json"} -O ${TARGET_FOLDER}"/${MODEL_PATH}/params.json"
     wget ${PRESIGNED_URL/'*'/"${MODEL_PATH}/checklist.chk"} -O ${TARGET_FOLDER}"/${MODEL_PATH}/checklist.chk"
+
     echo "Checking checksums"
-    (cd ${TARGET_FOLDER}"/${MODEL_PATH}" && md5sum -c checklist.chk)
+    if [ "$CPU_ARCH" = "arm64" ]; then
+      (cd ${TARGET_FOLDER}"/${MODEL_PATH}" && md5 checklist.chk)
+    else
+      (cd ${TARGET_FOLDER}"/${MODEL_PATH}" && md5sum -c checklist.chk)
+    fi
 done
 
